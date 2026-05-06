@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PlasticBot | Plastics-Only Recycling Assistant</title>
+    <style>
+        :root {
+            --ink: #17211d;
+            --muted: #66746e;
+            --line: #dde7e2;
+            --panel: #ffffff;
+            --wash: #f5f8f6;
+            --green: #0c6b49;
+            --green-dark: #084b34;
+            --green-soft: #e7f3ee;
+            --amber-soft: #fff4d8;
+            --amber: #805700;
+            --red-soft: #ffeded;
+            --red: #a52822;
+            --blue-soft: #eef4ff;
+            --blue: #215194;
+            --shadow: 0 18px 45px rgba(25, 54, 43, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(12, 107, 73, 0.10), transparent 34rem),
+                linear-gradient(180deg, #fbfdfc 0%, var(--wash) 100%);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        .page {
+            width: min(1120px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 34px 0 56px;
+        }
+
+        .hero {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(221, 231, 226, 0.95);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.88);
+            box-shadow: var(--shadow);
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 6px;
+            background: linear-gradient(180deg, var(--green), #8dbf7e);
+        }
+
+        .hero-inner {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 280px;
+            gap: 32px;
+            padding: 34px;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 18px;
+            color: var(--green-dark);
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .tag-mark {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 0 5px var(--green-soft);
+        }
+
+        h1 {
+            max-width: 720px;
+            margin: 0;
+            color: var(--ink);
+            font-size: clamp(2.4rem, 7vw, 4.8rem);
+            line-height: 0.96;
+            letter-spacing: 0;
+        }
+
+        .subtitle {
+            max-width: 660px;
+            margin: 20px 0 0;
+            color: var(--muted);
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
+
+        .warning-strip {
+            margin-top: 24px;
+            max-width: 760px;
+            border: 1px solid #ecdcae;
+            border-left: 4px solid #d4a01f;
+            border-radius: 8px;
+            background: #fffaf0;
+            color: #5d4714;
+            padding: 14px 16px;
+            line-height: 1.55;
+        }
+
+        .ask {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 10px;
+            margin-top: 24px;
+            padding: 8px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            min-width: 0;
+            border: 0;
+            outline: none;
+            border-radius: 6px;
+            padding: 14px 14px;
+            color: var(--ink);
+            background: transparent;
+            font-size: 1rem;
+        }
+
+        input[type="text"]::placeholder {
+            color: #96a19c;
+        }
+
+        input[type="text"]:focus {
+            box-shadow: inset 0 0 0 1px rgba(12, 107, 73, 0.32);
+            background: #fbfdfc;
+        }
+
+        button,
+        .button-link {
+            min-height: 48px;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            padding: 0 18px;
+            background: var(--green);
+            color: #fff;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 0.96rem;
+            font-weight: 750;
+            transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+        }
+
+        button:hover,
+        .button-link:hover {
+            background: var(--green-dark);
+        }
+
+        button:active,
+        .button-link:active {
+            transform: translateY(1px);
+        }
+
+        .hero-aside {
+            align-self: stretch;
+            display: grid;
+            align-content: space-between;
+            gap: 18px;
+            border-left: 1px solid var(--line);
+            padding-left: 28px;
+        }
+
+        .quick-checks {
+            display: grid;
+            gap: 10px;
+        }
+
+        .check {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 42px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #fbfdfc;
+            color: var(--green-dark);
+            padding: 10px 12px;
+            font-weight: 750;
+        }
+
+        .check::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+        }
+
+        .link-row {
+            display: flex;
+        }
+
+        .secondary {
+            width: 100%;
+            background: #fff;
+            border-color: var(--line);
+            color: var(--green-dark);
+        }
+
+        .secondary:hover {
+            background: var(--green-soft);
+            border-color: #bdd5c9;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.8fr);
+            gap: 18px;
+            margin-top: 18px;
+            align-items: start;
+        }
+
+        .result-card,
+        .panel,
+        .ai-reply {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.92);
+            box-shadow: 0 14px 34px rgba(25, 54, 43, 0.06);
+        }
+
+        .result-card,
+        .ai-reply {
+            padding: 24px;
+        }
+
+        .result-card h2,
+        .panel h2 {
+            margin: 0;
+            color: var(--ink);
+            font-size: 1.18rem;
+            line-height: 1.25;
+        }
+
+        .result-card p,
+        .ai-reply p,
+        .panel p {
+            color: var(--muted);
+            line-height: 1.65;
+        }
+
+        .result-card p:last-child,
+        .ai-reply p:last-child,
+        .panel p:last-child {
+            margin-bottom: 0;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            min-height: 28px;
+            margin-bottom: 14px;
+            border-radius: 999px;
+            padding: 0 10px;
+            font-size: 0.74rem;
+            font-weight: 850;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .ok {
+            background: var(--green-soft);
+            color: var(--green-dark);
+        }
+
+        .no {
+            background: var(--red-soft);
+            color: var(--red);
+        }
+
+        .warn {
+            background: var(--amber-soft);
+            color: var(--amber);
+        }
+
+        .faq {
+            background: var(--blue-soft);
+            color: var(--blue);
+        }
+
+        .mini-section {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #edf2ef;
+        }
+
+        .mini-section strong,
+        .ai-reply strong,
+        .issue strong {
+            color: var(--green-dark);
+        }
+
+        .ai-reply {
+            margin-top: 14px;
+        }
+
+        .ai-reply strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.88rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .panel {
+            padding: 22px;
+        }
+
+        .panel h2 + p {
+            margin-top: 10px;
+        }
+
+        .panel h2:not(:first-child) {
+            margin-top: 26px;
+            padding-top: 20px;
+            border-top: 1px solid #edf2ef;
+        }
+
+        .issue {
+            margin-top: 12px;
+            padding: 12px;
+            border: 1px solid #edf2ef;
+            border-radius: 8px;
+            background: #fbfdfc;
+            color: var(--muted);
+            font-size: 0.92rem;
+            line-height: 1.5;
+        }
+
+        .issue small {
+            color: #7d8a84;
+        }
+
+        @media (max-width: 860px) {
+            .hero-inner,
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-aside {
+                border-left: 0;
+                border-top: 1px solid var(--line);
+                padding: 22px 0 0;
+            }
+
+            .quick-checks {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 620px) {
+            .page {
+                width: min(100% - 24px, 1120px);
+                padding: 18px 0 36px;
+            }
+
+            .hero-inner,
+            .result-card,
+            .panel,
+            .ai-reply {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: clamp(2.2rem, 16vw, 3.25rem);
+            }
+
+            .ask,
+            .quick-checks {
+                grid-template-columns: 1fr;
+            }
+
+            button,
+            .button-link {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <section class="hero">
+            <div class="hero-inner">
+                <div>
+                    <div class="tag"><span class="tag-mark"></span>PlasticBot / Plastics-only bin</div>
+                    <h1>Check before you drop.</h1>
+                    <p class="subtitle">
+                        Ask whether an item belongs in this office recycling bin. PlasticBot keeps the rules strict:
+                        only eligible plastic items that are empty, clean, and dry should go in.
+                    </p>
+
+                    <div class="warning-strip">
+                        This is not a general recycling bin. Paper, metal, glass, food waste, liquids, tissue, e-waste, and styrofoam do not belong here.
+                    </div>
+
+                    <form class="ask" method="post">
+                        <input
+                            type="text"
+                            name="query"
+                            value="{{ user_query }}"
+                            placeholder="e.g. Can I recycle a plastic bottle?"
+                            required
+                        />
+                        <button type="submit">Ask PlasticBot</button>
+                    </form>
+                </div>
+
+                <div class="hero-aside" aria-label="Plastic bin checklist">
+                    <div class="quick-checks">
+                        <div class="check">Plastic</div>
+                        <div class="check">Empty</div>
+                        <div class="check">Clean</div>
+                        <div class="check">Dry</div>
+                    </div>
+
+                    <div class="link-row">
+                        <a class="button-link secondary" href="{{ url_for('report') }}">Report bin issue</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-grid">
+            <div>
+                {% if local_card %}
+                    {{ local_card }}
+                {% endif %}
+
+                {% if ai_reply %}
+                    <div class="ai-reply">
+                        <strong>PlasticBot says</strong>
+                        <p>{{ ai_reply }}</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <aside class="panel">
+                <h2>What this bin accepts</h2>
+                <p>Eligible plastic items only. The exact decision depends on your internal CSV rules.</p>
+
+                <h2>Bin issue history</h2>
+                {% if issues %}
+                    {% for issue in issues %}
+                        <div class="issue">
+                            <strong>{{ issue.issue_type }}</strong><br />
+                            {{ issue.location }}<br />
+                            <small>{{ issue.timestamp }}</small>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No issues reported this session.</p>
+                {% endif %}
+            </aside>
+        </section>
+    </main>
+</body>
+</html>
